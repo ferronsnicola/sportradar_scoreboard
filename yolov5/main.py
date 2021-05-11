@@ -42,8 +42,11 @@ if __name__ == '__main__':
 
             first_child_index = hierarchy[0][first_child_index][0]
 
+        # binary = cv.resize(binary, (0,0), fx=2, fy=2)
         # kernel = np.ones((2, 2), np.uint8)
         # binary = cv.erode(binary, kernel, iterations=1)
+        # binary = cv.morphologyEx(binary, cv.MORPH_OPEN, kernel)
+
         binary = cv.bitwise_not(binary)
         text = pytesseract.image_to_string(binary)
         print(text)
