@@ -43,15 +43,22 @@ if __name__ == '__main__':
             first_child_index = hierarchy[0][first_child_index][0]
 
         # binary = cv.resize(binary, (0,0), fx=2, fy=2)
-        # kernel = np.ones((2, 2), np.uint8)
-        # binary = cv.erode(binary, kernel, iterations=1)
+        kernel = np.ones((2, 2), np.uint8)
+        binary = cv.dilate(binary, kernel, iterations=1)
         # binary = cv.morphologyEx(binary, cv.MORPH_OPEN, kernel)
 
         binary = cv.bitwise_not(binary)
-        text = pytesseract.image_to_string(binary)
-        print(text)
+        first = binary[0:binary.shape[0]//2, 0:binary.shape[1]-1]
+        second = binary[binary.shape[0]//2:binary.shape[0]-1, 0:binary.shape[1]-1]
+
+        text1 = pytesseract.image_to_string(first)
+        print(text1)
+        text2 = pytesseract.image_to_string(second)
+        print(text2)
 
         cv.imshow('binary', binary)
+        cv.imshow('first', first)
+        cv.imshow('second', second)
         cv.imshow('detected_scoreboard', scoreboard)
         cv.waitKey(0)
 
