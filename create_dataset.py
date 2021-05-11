@@ -56,8 +56,7 @@ while True:
                 last_frame = frame.copy()
                 frame = cv.resize(frame, (img_size, img_size))
                 for i in range(data_aug_factor):
-                    frame, bbox = data_aug.random_flip(frame, [bbox_0 * img_size, bbox_1 * img_size, bbox_2 * img_size,
-                                                               bbox_3 * img_size], 0.5, 0.5)
+                    frame, [bbox_0, bbox_1, bbox_2, bbox_3] = data_aug.random_flip(frame, [bbox_0, bbox_1, bbox_2, bbox_3], 0.5, 0.5)
                     frame = data_aug.random_color_distort(frame, 30, 18, sat_vari=0.36)
                     frame = cv.GaussianBlur(frame, (5, 5), 0)
                     noise = np.random.uniform(0.9, 1.1, frame.shape)

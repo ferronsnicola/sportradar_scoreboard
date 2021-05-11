@@ -65,18 +65,11 @@ def random_flip(img, bbox, px=0, py=0):
         the probability of vertical flip
     '''
 
-    height, width = img.shape[:2]
     if np.random.uniform(0, 1) < px:
         img = cv.flip(img, 1)
-        xmax = width - bbox[0]
-        xmin = width - bbox[2]
-        bbox[0] = xmin
-        bbox[2] = xmax
+        bbox[0] = 1 - bbox[0]
 
     if np.random.uniform(0, 1) < py:
         img = cv.flip(img, 0)
-        ymax = height - bbox[1]
-        ymin = height - bbox[3]
-        bbox[1] = ymin
-        bbox[3] = ymax
+        bbox[1] = 1 - bbox[1]
     return img, bbox
