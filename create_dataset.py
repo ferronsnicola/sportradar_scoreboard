@@ -46,10 +46,10 @@ while True:
             s1 = data[str(count)]['score_1']
             s2 = data[str(count)]['score_2']
             bbox = data[str(count)]['bbox']
-            bbox_0 = bbox[0] / frame.shape[0]
-            bbox_1 = bbox[1] / frame.shape[1]
-            bbox_2 = bbox[2] / frame.shape[0]
-            bbox_3 = bbox[3] / frame.shape[1]
+            bbox_0 = (bbox[2] + bbox[0]) / (2 * frame.shape[1])
+            bbox_1 = (bbox[3] + bbox[1]) / (2 * frame.shape[0])
+            bbox_2 = (bbox[2] - bbox[0]) / frame.shape[1]
+            bbox_3 = (bbox[3] - bbox[1]) / frame.shape[0]
 
             if not (p1 == last_p1 and p2 == last_p2 and s1 == last_s1 and s2 == last_s2 and _sum < diff_thresh):
                 last_p1, last_p2, last_s1, last_s2 = p1, p2, s1, s2
