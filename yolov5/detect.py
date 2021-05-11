@@ -146,6 +146,20 @@ def detect(opt):
 
     print(f'Done. ({time.time() - t0:.3f}s)')
 
+def load_model(weights=['../best.pt'], device=''):
+    # Initialize
+    set_logging()
+    device = select_device(device)
+    half = device.type != 'cpu'  # half precision only supported on CUDA
+
+    # Load model
+    model = attempt_load(weights, map_location=device)  # load FP32 model
+    if half:
+        model.half()  # to FP16
+
+    # model = attempt_load(weights, map_location=device)  # load FP32 model
+    return model
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
