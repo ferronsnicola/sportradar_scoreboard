@@ -2,6 +2,7 @@ import argparse
 import time
 from pathlib import Path
 
+import numpy as np
 import cv2
 import torch
 import torch.backends.cudnn as cudnn
@@ -146,6 +147,7 @@ def detect(opt):
 
     print(f'Done. ({time.time() - t0:.3f}s)')
 
+
 def load_model(weights=['../best.pt'], device=''):
     # Initialize
     set_logging()
@@ -159,6 +161,49 @@ def load_model(weights=['../best.pt'], device=''):
 
     # model = attempt_load(weights, map_location=device)  # load FP32 model
     return model
+
+
+def detect_score_board(model, image, imgsz=640, conf_thresh=0.7, iou_thresh=0.45):
+    # Initialize
+    set_logging()
+    device = select_device('')
+    half = device.type != 'cpu'  # half precision only supported on CUDA
+
+    # Load model
+    stride = int(model.stride.max())  # model stride
+    imgsz = check_img_size(imgsz, s=stride)  # check img_size
+    # names = model.module.names if hasattr(model, 'module') else model.names  # get class names
+    if half:
+        model.half()  # to FP16
+
+
+    # Run inference
+    if device.type != 'cpu':
+        model(torch.zeros(1, 3, imgsz, imgsz).to(device).type_as(next(model.parameters())))  # run once
+
+    image_r = cv2.resize(image, (640, 640))
+    img = image_r[:, :, ::-1].transpose(2, 0, 1)  # BGR to RGB, to 3x416x416
+    img = np.ascontiguousarray(img)
+    img = torch.from_numpy(img).to(device)
+    img = img.half() if half else img.float()  # uint8 to fp16/32
+    img /= 255.0  # 0 - 255 to 0.0 - 1.0
+    if img.ndimension() == 3:
+        img = img.unsqueeze(0)
+
+    # Inference
+    # t1 = time_synchronized()
+    pred = model(img)[0]
+
+    # Apply NMS
+    pred = non_max_suppression(pred, conf_thresh, iou_thresh, classes=None, agnostic=False)
+    bbox_0 = pred[0][0][0] * 1920/640
+    bbox_1 = pred[0][0][1] * 1080/640
+    bbox_2 = pred[0][0][2] * 1920/640
+    bbox_3 = pred[0][0][3] * 1080/640
+    score = pred[0][0][4]
+    classe = pred[0][0][5]
+
+    return image[int(bbox_1):int(bbox_3), int(bbox_0):int(bbox_2)]
 
 
 if __name__ == '__main__':
