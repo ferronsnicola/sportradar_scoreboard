@@ -62,7 +62,7 @@ while True:
                     frame = cv.GaussianBlur(frame, (5, 5), 0)
                     noise = np.random.uniform(0.9, 1.1, frame.shape)
                     frame = np.clip(frame * noise, 0, 255)
-                    cv.imwrite('dataset/' + dataset + 'frames/' + str(count) + '_' + str(i) + '.jpg', frame)
+                    cv.imwrite('dataset/' + dataset + 'images/' + str(count) + '_' + str(i) + '.jpg', frame)
                     f = open('dataset/' + dataset + 'labels/' + str(count) + '_' + str(i) + ".txt", "w")
                     f.write("0 " + str(bbox_0) + ' ' + str(bbox_1) + ' ' + str(bbox_2) + ' ' + str(bbox_3))
                     f.close()
@@ -71,7 +71,7 @@ while True:
             print('nothing at frame ' + str(count))
             if np.random.uniform(0, 1) > 0.9:
                 frame = cv.resize(frame, (img_size, img_size))
-                cv.imwrite('dataset/' + dataset + 'frames/' + 'empty_' + str(count) + '.jpg', frame)
+                cv.imwrite('dataset/' + dataset + 'images/' + 'empty_' + str(count) + '.jpg', frame)
         count += 1
     else:
         break
