@@ -19,14 +19,36 @@ if __name__ == '__main__':
         # OCR
         scoreboard = cv.cvtColor(scoreboard, cv.COLOR_BGR2GRAY)
         # scoreboard = cv.Canny(scoreboard, 100, 200)
-        scoreboard = cv.threshold(scoreboard, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)[1]
+        binary = cv.threshold(scoreboard, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)[1]
+
+        # the highlighted part of the score board is the main source of errors, i try to invert that portion
+        contours, hierarchy = cv.findContours(binary, cv.RETR_TREE, cv.CHAIN_APPROX_NONE)
+        max_area = 0
+        max_area_index = -1
+        for i in range(len(contours)):
+            if max_area < cv.contourArea(contours[i]):
+                max_area = cv.contourArea(contours[i])
+                max_area_index = i
+
+        cv.drawContours(binary, contours, max_area_index, color=0, thickness=cv.FILLED)
+
+        first_child_index = hierarchy[0][max_area_index][2]
+
+        while first_child_index != -1:
+            cv.drawContours(binary, contours, first_child_index, color=255, thickness=cv.FILLED)
+            child = hierarchy[0][first_child_index][2]
+            if child != -1:
+                cv.drawContours(binary, contours, child, color=0, thickness=cv.FILLED)
+
+            first_child_index = hierarchy[0][first_child_index][0]
 
         kernel = np.ones((2, 2), np.uint8)
-        scoreboard = cv.erode(scoreboard, kernel, iterations=1)
+        binary = cv.erode(binary, kernel, iterations=1)
 
-        text = pytesseract.image_to_string(scoreboard)
+        text = pytesseract.image_to_string(binary)
         print(text)
 
+        cv.imshow('binary', binary)
         cv.imshow('detected_scoreboard', scoreboard)
         cv.waitKey(0)
 
