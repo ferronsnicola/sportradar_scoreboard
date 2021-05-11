@@ -42,9 +42,9 @@ if __name__ == '__main__':
 
             first_child_index = hierarchy[0][first_child_index][0]
 
-        kernel = np.ones((2, 2), np.uint8)
-        binary = cv.erode(binary, kernel, iterations=1)
-
+        # kernel = np.ones((2, 2), np.uint8)
+        # binary = cv.erode(binary, kernel, iterations=1)
+        binary = cv.bitwise_not(binary)
         text = pytesseract.image_to_string(binary)
         print(text)
 
