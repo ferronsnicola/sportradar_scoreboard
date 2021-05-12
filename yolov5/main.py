@@ -3,6 +3,7 @@ import cv2 as cv
 import pytesseract
 import numpy as np
 import json
+import re
 
 if __name__ == '__main__':
 
@@ -75,14 +76,31 @@ if __name__ == '__main__':
                     print(text2)
 
                     # EXTRACT THE TWO PLAYER NAMES AND THEIR SCORES
-                    player_1 = ''
-                    player_2 = ''
-                    score_1 = ''
-                    score_2 = ''
+                    regex = '[^A-Za-z. ]+'  # this regex will cut out all special char and digits, but point and space
+                    split_index_1 = -1
+                    for i in range(len(text1)):  # i will split the string at the first digit found (weak heuristic)
+                        if text1[i].isdigit():
+                            split_index_1 = i
+                            break
+                    split_index_2 = -1
+                    for i in range(len(text2)):
+                        if text2[i].isdigit():
+                            split_index_2 = i
+                            break
+
+                    player_1 = re.sub(regex, '', text1[:split_index_1])
+                    player_2 = re.sub(regex, '', text2[:split_index_2])
+                    score_1 = '-'.join(text1[split_index_1:].strip().split(' '))  # take the 2nd part->strip->split->join with -
+                    score_2 = '-'.join(text2[split_index_2:].strip().split(' '))
+
+                    print('player2: ' + player_2)
+                    print('player1: ' + player_1)
+                    print('score1: ' + score_1)
+                    print('score2: ' + score_2)
 
                     # WHO IS SERVING?
                     serving = ''
-                    if text1.startswith('>') or text1.startswith('»'):
+                    if text1.startswith('>') or text1.startswith('»'):  # indicator is often recognized as these char
                         serving = player_1
                     elif text2.startswith('>') or text2.startswith('»'):
                         serving = player_2
@@ -94,6 +112,7 @@ if __name__ == '__main__':
                         serving = player_1 if sum1 > sum2 else player_2
                         cv.imshow('first_crop', first_crop)
                         cv.imshow('second_crop', second_crop)
+                    print('serving: ' + serving)
 
                     cv.imshow('binary', binary)
                     cv.imshow('first', first)
