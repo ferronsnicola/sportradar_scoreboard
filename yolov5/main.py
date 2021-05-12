@@ -6,7 +6,7 @@ import json
 import re
 
 
-def ocr(scoreboard):
+def ocr_preprocessing(scoreboard):
     scoreboard = cv.cvtColor(scoreboard, cv.COLOR_BGR2GRAY)
     # scoreboard = cv.Canny(scoreboard, 100, 200)
     binary = cv.threshold(scoreboard, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)[1]
@@ -45,12 +45,37 @@ def ocr(scoreboard):
     cv.imshow('binary', binary)
     cv.imshow('first', first)
     cv.imshow('second', second)
+    return first, second
 
-    text1 = pytesseract.image_to_string(first)
-    # print(text1)
-    text2 = pytesseract.image_to_string(second)
-    # print(text2)
-    return text1, text2
+
+def ocr(image):
+    height = image.shape[0]
+    width = image.shape[1]
+
+    # first = cv.copyMakeBorder(image, 20, 20, 50, 50, cv.BORDER_CONSTANT)  # to add padding
+
+    d = pytesseract.image_to_boxes(image, output_type=pytesseract.Output.DICT)
+    n_boxes = len(d['char'])
+    text_composed = ''
+    last_center = -1
+    last_width = -1
+    for i in range(n_boxes):
+        (text, x1, y2, x2, y1) = (d['char'][i], d['left'][i], d['top'][i], d['right'][i], d['bottom'][i])
+        cv.rectangle(image, (x1, height - y1), (x2, height - y2), (0, 255, 0), 1)
+
+        center = (x1 + x2) / 2
+        width = x2 - x1
+
+        if last_width > 0:
+            if center - last_center > 1.5 * max(width, last_width):
+                text_composed += ' '
+        text_composed += text
+
+        last_width = width
+        last_center = center
+        # print(text)
+
+    return text_composed
 
 
 def parse_ocr_output(text1, text2):
@@ -126,8 +151,9 @@ if __name__ == '__main__':
                     cv.imshow('detected_scoreboard', scoreboard)
 
                     if scoreboard is not None:
-                        text1, text2 = ocr(scoreboard)
-
+                        first, second = ocr_preprocessing(scoreboard)
+                        text1 = ocr(first)
+                        text2 = ocr(second)
                         player_1, player_2, score_1, score_2 = parse_ocr_output(text1, text2)
 
                         serving = detect_serving_player(text1, text2, player_1, player_2, scoreboard, serving_crop_width)
@@ -136,4 +162,5 @@ if __name__ == '__main__':
             else:
                 if not skip_empty_frames and detect.detect_score_board(model, frame) is not None:
                     print('found a fake scoreboard where there is nothing')
+            print(count)
             count += 1
