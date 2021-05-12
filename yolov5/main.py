@@ -79,7 +79,8 @@ def ocr(image):
 
 
 def parse_ocr_output(text1, text2):
-    regex = '[^A-Za-z. ]+'  # this regex will cut out all special char and digits, but point and space
+    player_regex = '[^A-Za-z. ]+'  # this regex will cut out all special char and digits, but point and space
+    score_regex = '[^adAD0-9]+'  # this regex will cut out all special char and digits, but point and space
     split_index_1 = -1
     for i in range(len(text1)):  # i will split the string at the first digit found (weak heuristic)
         if text1[i].isdigit():
@@ -91,10 +92,13 @@ def parse_ocr_output(text1, text2):
             split_index_2 = i
             break
 
-    player_1 = re.sub(regex, '', text1[:split_index_1])
-    player_2 = re.sub(regex, '', text2[:split_index_2])
-    score_1 = '-'.join(text1[split_index_1:].strip().split(' '))  # take the 2nd part->strip->split->join with -
-    score_2 = '-'.join(text2[split_index_2:].strip().split(' '))
+    player_1 = re.sub(player_regex, '', text1[:split_index_1])
+    player_2 = re.sub(player_regex, '', text2[:split_index_2])
+
+    score_1 = re.sub(score_regex, ' ', text1[split_index_1:])
+    score_2 = re.sub(score_regex, ' ', text2[split_index_2:])
+    score_1 = '-'.join(score_1.strip().split(' '))  # take the 2nd part->strip->split->join with -
+    score_2 = '-'.join(score_2.strip().split(' '))
 
     print('player1: ' + player_1)
     print('player2: ' + player_2)
