@@ -1,4 +1,6 @@
 import json
+import random
+
 import cv2 as cv
 import numpy as np
 import data_aug
@@ -58,9 +60,11 @@ while True:
                 for i in range(data_aug_factor):
                     frame, [bbox_0, bbox_1, bbox_2, bbox_3] = data_aug.random_flip(frame, [bbox_0, bbox_1, bbox_2, bbox_3], 0.5, 0.5)
                     frame = data_aug.random_color_distort(frame, 30, 18, sat_vari=0.36)
-                    frame = cv.GaussianBlur(frame, (5, 5), 0)
-                    noise = np.random.uniform(0.9, 1.1, frame.shape)
-                    frame = np.clip(frame * noise, 0, 255)
+                    if np.random.uniform(0, 1) > 0.8:
+                        frame = cv.GaussianBlur(frame, (3, 3), 0)
+                    if np.random.uniform(0, 1) > 0.5:
+                        noise = np.random.uniform(0.9, 1.1, frame.shape)
+                        frame = np.clip(frame * noise, 0, 255)
                     cv.imwrite('dataset/' + dataset + 'images/' + str(count) + '_' + str(i) + '.jpg', frame)
                     f = open('dataset/' + dataset + 'labels/' + str(count) + '_' + str(i) + ".txt", "w")
                     f.write("0 " + str(bbox_0) + ' ' + str(bbox_1) + ' ' + str(bbox_2) + ' ' + str(bbox_3))
