@@ -59,7 +59,7 @@ while True:
                 frame = cv.resize(frame, (img_size, img_size))
                 for i in range(data_aug_factor):
                     frame, [bbox_0, bbox_1, bbox_2, bbox_3] = data_aug.random_flip(frame, [bbox_0, bbox_1, bbox_2, bbox_3], 0.5, 0.5)
-                    frame = data_aug.random_color_distort(frame, 30, 18, sat_vari=0.36)
+                    frame = data_aug.random_color_distort(frame, 10, 8, sat_vari=0.1)
                     if np.random.uniform(0, 1) > 0.8:
                         frame = cv.GaussianBlur(frame, (3, 3), 0)
                     if np.random.uniform(0, 1) > 0.5:
