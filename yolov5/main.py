@@ -118,5 +118,7 @@ if __name__ == '__main__':
                         cv.imshow('detected_scoreboard', scoreboard)
                         cv.imshow('original_frame', original_frame)
                         cv.waitKey(0)
-
+            else:
+                if detect.detect_score_board(model, original_frame) is not None:
+                    print('found a fake scoreboard where there is nothing')
             count += 1
