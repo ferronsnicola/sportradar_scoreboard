@@ -196,14 +196,17 @@ def detect_score_board(model, image, imgsz=640, conf_thresh=0.7, iou_thresh=0.45
 
     # Apply NMS
     pred = non_max_suppression(pred, conf_thresh, iou_thresh, classes=None, agnostic=False)
-    bbox_0 = pred[0][0][0] * 1920/640
-    bbox_1 = pred[0][0][1] * 1080/640
-    bbox_2 = pred[0][0][2] * 1920/640
-    bbox_3 = pred[0][0][3] * 1080/640
-    score = pred[0][0][4]
-    classe = pred[0][0][5]
-
-    return image[int(bbox_1):int(bbox_3), int(bbox_0):int(bbox_2)]
+    n_preds = pred[0].shape[0]
+    if n_preds == 0:
+        return None
+    else:  # the first box is the one with the highest score
+        bbox_0 = pred[0][0][0] * 1920/640
+        bbox_1 = pred[0][0][1] * 1080/640
+        bbox_2 = pred[0][0][2] * 1920/640
+        bbox_3 = pred[0][0][3] * 1080/640
+        # score = pred[0][0][4]
+        # classe = pred[0][0][5]
+        return image[int(bbox_1):int(bbox_3), int(bbox_0):int(bbox_2)]
 
 
 if __name__ == '__main__':
