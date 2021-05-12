@@ -137,30 +137,34 @@ if __name__ == '__main__':
     while cap.isOpened():
         ret, frame = cap.read()
         cv.imshow('original_frame', frame)
+        try:
+            if ret:
+                if str(count) in data:
+                    p1 = data[str(count)]['name_1']
+                    p2 = data[str(count)]['name_2']
+                    s1 = data[str(count)]['score_1']
+                    s2 = data[str(count)]['score_2']
 
-        if ret:
-            if str(count) in data:
-                p1 = data[str(count)]['name_1']
-                p2 = data[str(count)]['name_2']
-                s1 = data[str(count)]['score_1']
-                s2 = data[str(count)]['score_2']
+                    if p1 != last_p1 or p2 != last_p2 or s1 != last_s1 or s2 != last_s2:
+                        last_p1, last_p2, last_s1, last_s2 = p1, p2, s1, s2
+                        scoreboard = detect.detect_score_board(model, frame)
+                        cv.imshow('detected_scoreboard', scoreboard)
 
-                if p1 != last_p1 or p2 != last_p2 or s1 != last_s1 or s2 != last_s2:
-                    last_p1, last_p2, last_s1, last_s2 = p1, p2, s1, s2
-                    scoreboard = detect.detect_score_board(model, frame)
-                    cv.imshow('detected_scoreboard', scoreboard)
+                        if scoreboard is not None:
+                            first, second = ocr_preprocessing(scoreboard)
+                            text1 = ocr(first)
+                            text2 = ocr(second)
+                            player_1, player_2, score_1, score_2 = parse_ocr_output(text1, text2)
 
-                    if scoreboard is not None:
-                        first, second = ocr_preprocessing(scoreboard)
-                        text1 = ocr(first)
-                        text2 = ocr(second)
-                        player_1, player_2, score_1, score_2 = parse_ocr_output(text1, text2)
+                            serving = detect_serving_player(text1, text2, player_1, player_2, scoreboard, serving_crop_width)
 
-                        serving = detect_serving_player(text1, text2, player_1, player_2, scoreboard, serving_crop_width)
-
-                        cv.waitKey(0)
-            else:
-                if not skip_empty_frames and detect.detect_score_board(model, frame) is not None:
-                    print('found a fake scoreboard where there is nothing')
-            print(count)
-            count += 1
+                            cv.waitKey(0)
+                else:
+                    if not skip_empty_frames and detect.detect_score_board(model, frame) is not None:
+                        print('found a fake scoreboard where there is nothing')
+                print(count)
+        except:
+            cv.imshow('detected_scoreboard', scoreboard)
+            print('unknown error')
+            cv.waitKey(0)
+        count += 1
