@@ -148,10 +148,11 @@ if __name__ == '__main__':
 
     while cap.isOpened():
         ret, frame = cap.read()
-        if show_images:
-            cv.imshow('original_frame', frame)
+
         try:
             if ret:
+                if show_images:
+                    cv.imshow('original_frame', frame)
                 if str(count) in data:
                     sp = data[str(count)]['serving_player']
                     p1 = data[str(count)]['name_1']
@@ -186,6 +187,8 @@ if __name__ == '__main__':
                     if not skip_empty_frames and detect.detect_score_board(model, frame) is not None:
                         print('found a fake scoreboard where there is nothing')
                 print(count)
+            else:
+                break
         except:
             if show_images:
                 cv.imshow('detected_scoreboard', scoreboard)
@@ -196,5 +199,5 @@ if __name__ == '__main__':
     avg_ocr_error /= frames_with_text
     serving_accuracy /= frames_with_text
 
-    print('Average OCR error: ' + avg_ocr_error)
-    print('Serving player accuracy: ' + serving_accuracy)
+    print('Average OCR error: ' + str(avg_ocr_error))
+    print('Serving player accuracy: ' + str(serving_accuracy))
