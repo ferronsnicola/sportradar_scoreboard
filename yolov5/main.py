@@ -4,6 +4,7 @@ import pytesseract
 import numpy as np
 import json
 import re
+from Levenshtein import distance as levenshtein_distance
 
 
 def ocr_preprocessing(scoreboard):
@@ -107,18 +108,18 @@ def parse_ocr_output(text1, text2):
     return player_1, player_2, score_1, score_2
 
 
-def detect_serving_player(text1, text2, player_1, player_2, scoreboard, serving_crop_width):
+def detect_serving_player(text1, text2, scoreboard, serving_crop_width):
     serving = ''
     if text1.startswith('>') or text1.startswith('»'):  # indicator is often recognized as these char
-        serving = player_1
+        serving = 'name_1'
     elif text2.startswith('>') or text2.startswith('»'):
-        serving = player_2
+        serving = 'name_2'
     else:  # extract a little portion at the beginning of the lines, choose the brightest one
         first_crop = scoreboard[0:scoreboard.shape[0] // 2, 0:serving_crop_width]
         second_crop = scoreboard[scoreboard.shape[0] // 2:scoreboard.shape[0] - 1, 0:serving_crop_width]
         sum1 = first_crop.sum()
         sum2 = second_crop.sum()
-        serving = player_1 if sum1 > sum2 else player_2
+        serving = 'name_1' if sum1 > sum2 else 'name_2'
         cv.imshow('first_crop', first_crop)
         cv.imshow('second_crop', second_crop)
     print('serving: ' + serving)
@@ -135,6 +136,9 @@ if __name__ == '__main__':
     serving_crop_width = 10  # the width of the crop to extract before the name to choose who is serving
     model = detect.load_model()
     skip_empty_frames = True
+    avg_ocr_error = 0
+    frames_with_text = 0
+    serving_accuracy = 0
 
     last_p1, last_p2, last_s1, last_s2 = None, None, None, None  # to avoid visualizing every similar frame
 
@@ -144,6 +148,7 @@ if __name__ == '__main__':
         try:
             if ret:
                 if str(count) in data:
+                    sp = data[str(count)]['serving_player']
                     p1 = data[str(count)]['name_1']
                     p2 = data[str(count)]['name_2']
                     s1 = data[str(count)]['score_1']
@@ -155,12 +160,20 @@ if __name__ == '__main__':
                         cv.imshow('detected_scoreboard', scoreboard)
 
                         if scoreboard is not None:
+                            frames_with_text += 1
                             first, second = ocr_preprocessing(scoreboard)
                             text1 = ocr(first)
                             text2 = ocr(second)
                             player_1, player_2, score_1, score_2 = parse_ocr_output(text1, text2)
 
-                            serving = detect_serving_player(text1, text2, player_1, player_2, scoreboard, serving_crop_width)
+                            serving = detect_serving_player(text1, text2, scoreboard, serving_crop_width)
+
+                            # evaluation
+                            avg_ocr_error += levenshtein_distance(
+                                (player_1.strip() + player_2.strip() + score_1.strip() + score_2.strip()).upper(),
+                                (p1.strip() + p2.strip() + s1.strip() + s2.strip()).upper())
+                            if serving == sp:
+                                serving_accuracy += 1
 
                             cv.waitKey(0)
                 else:
@@ -172,3 +185,9 @@ if __name__ == '__main__':
             print('unknown error')
             cv.waitKey(0)
         count += 1
+
+    avg_ocr_error /= frames_with_text
+    serving_accuracy /= frames_with_text
+
+    print('Average OCR error: ' + avg_ocr_error)
+    print('Serving player accuracy: ' + serving_accuracy)
