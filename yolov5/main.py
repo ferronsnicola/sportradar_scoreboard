@@ -43,9 +43,10 @@ def ocr_preprocessing(scoreboard):
     first = binary[0:binary.shape[0] // 2, 0:binary.shape[1] - 1]
     second = binary[binary.shape[0] // 2:binary.shape[0] - 1, 0:binary.shape[1] - 1]
 
-    cv.imshow('binary', binary)
-    cv.imshow('first', first)
-    cv.imshow('second', second)
+    if show_images:
+        cv.imshow('binary', binary)
+        cv.imshow('first', first)
+        cv.imshow('second', second)
     return first, second
 
 
@@ -120,13 +121,16 @@ def detect_serving_player(text1, text2, scoreboard, serving_crop_width):
         sum1 = first_crop.sum()
         sum2 = second_crop.sum()
         serving = 'name_1' if sum1 > sum2 else 'name_2'
-        cv.imshow('first_crop', first_crop)
-        cv.imshow('second_crop', second_crop)
+        if show_images:
+            cv.imshow('first_crop', first_crop)
+            cv.imshow('second_crop', second_crop)
     print('serving: ' + serving)
     return serving
 
 
 if __name__ == '__main__':
+
+    show_images = False
 
     pytesseract.pytesseract.tesseract_cmd = 'C:\\Program Files\\Tesseract-OCR\\tesseract.exe'
     cap = cv.VideoCapture('../data/top-100-shots-rallies-2018-atp-season.mp4')
@@ -144,7 +148,8 @@ if __name__ == '__main__':
 
     while cap.isOpened():
         ret, frame = cap.read()
-        cv.imshow('original_frame', frame)
+        if show_images:
+            cv.imshow('original_frame', frame)
         try:
             if ret:
                 if str(count) in data:
@@ -157,7 +162,8 @@ if __name__ == '__main__':
                     if p1 != last_p1 or p2 != last_p2 or s1 != last_s1 or s2 != last_s2:
                         last_p1, last_p2, last_s1, last_s2 = p1, p2, s1, s2
                         scoreboard = detect.detect_score_board(model, frame)
-                        cv.imshow('detected_scoreboard', scoreboard)
+                        if show_images:
+                            cv.imshow('detected_scoreboard', scoreboard)
 
                         if scoreboard is not None:
                             frames_with_text += 1
@@ -174,14 +180,15 @@ if __name__ == '__main__':
                                 (p1.strip() + p2.strip() + s1.strip() + s2.strip()).upper())
                             if serving == sp:
                                 serving_accuracy += 1
-
-                            cv.waitKey(0)
+                            if show_images:
+                                cv.waitKey(0)
                 else:
                     if not skip_empty_frames and detect.detect_score_board(model, frame) is not None:
                         print('found a fake scoreboard where there is nothing')
                 print(count)
         except:
-            cv.imshow('detected_scoreboard', scoreboard)
+            if show_images:
+                cv.imshow('detected_scoreboard', scoreboard)
             print('unknown error')
             cv.waitKey(0)
         count += 1
